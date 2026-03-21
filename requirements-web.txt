@@ -1,0 +1,8 @@
+# 仅修复 Web UI 所需的最小兼容矩阵
+gradio==4.44.1
+fastapi==0.112.2
+pydantic==2.12.5
+typing_extensions==4.15.0
+huggingface_hub==0.36.2
+requests==2.32.5
+python-dotenv==1.2.2

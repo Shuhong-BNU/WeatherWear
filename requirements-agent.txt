@@ -1,0 +1,6 @@
+# Agent / Workflow 运行时
+langchain>=0.3
+langchain-core>=0.3
+langchain-openai>=0.2
+langgraph>=0.2
+python-dotenv==1.2.2
