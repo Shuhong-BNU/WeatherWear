@@ -1,0 +1,95 @@
+flowchart TB
+    subgraph FE1["前端展示层"]
+        AppFrame["AppFrame<br/>应用框架与导航"]
+        QueryWorkspace["QueryWorkspace / QueryPanel<br/>主查询工作台"]
+        DevPages["Trace / Logs / ModelConfig / MapConfig<br/>开发者页面"]
+        ResultCards["结果卡片 / Timeline / Debug 面板"]
+    end
+
+    subgraph FE2["前端状态 / 路由层"]
+        AppRouter["AppRouter<br/>用户路由 + 开发者路由守卫"]
+        Session["WeatherWearSession<br/>会话状态、查询提交、历史/收藏联动"]
+        FrontAPI["shared/api.ts<br/>fetch API 封装"]
+        BrowserStorage["sessionStorage / localStorage"]
+    end
+
+    subgraph API["API 层"]
+        Server["server.py<br/>FastAPI 路由与请求入口"]
+        Schemas["schemas.py<br/>QueryRequest / QueryResponse 等契约"]
+    end
+
+    subgraph APP["应用编排层"]
+        Coordinator["MultiAgentCoordinator<br/>查询总编排器"]
+        Workflow["workflow.py<br/>LangGraph / 兼容工作流"]
+        Presentation["presentation.py<br/>CoordinatorResult -> view_model"]
+    end
+
+    subgraph SVC["服务 / 支撑层"]
+        CityResolver["city_resolver.py<br/>地点解析与候选确认"]
+        WeatherSvc["weather_service.py<br/>OpenWeather 查询 / geocoding / demo 降级"]
+        Knowledge["fashion_knowledge.py<br/>规则检索 / 向量检索 / rerank / 降级"]
+        Fashion["fashion_agent.py<br/>穿搭建议生成 / 规则兜底"]
+        Health["health_check.py<br/>运行时健康检查"]
+        LLM["llm_support.py<br/>LLM / embedding 配置与调用"]
+        MapSupport["map_support.py<br/>地图配置与测试"]
+        Obs["observability.py + logs_support.py<br/>trace / metrics / 结构化事件"]
+        RuntimeStore["runtime_storage.py<br/>.runtime/state + .runtime/logs"]
+        UserStore["user_state_store.py<br/>history / favorites 读写"]
+    end
+
+    subgraph RES["资源层"]
+        OpenWeather["OpenWeather API"]
+        KnowledgeJSONL["resources/fashion_knowledge/*.jsonl"]
+        RuntimeFiles[".runtime/state/*.json<br/>.runtime/logs/*.log / app.events.jsonl"]
+    end
+
+    AppRouter --> AppFrame
+    AppFrame --> QueryWorkspace
+    AppFrame --> DevPages
+    QueryWorkspace --> ResultCards
+    QueryWorkspace --> Session
+    DevPages --> Session
+    Session --> FrontAPI
+    Session --> BrowserStorage
+
+    FrontAPI -->|fetch /api/*| Server
+    Server --> Schemas
+    Server --> Coordinator
+    Server --> Obs
+    Server --> Health
+
+    Coordinator --> Workflow
+    Workflow --> CityResolver
+    Workflow --> WeatherSvc
+    Workflow --> Fashion
+    Fashion --> Knowledge
+
+    CityResolver --> WeatherSvc
+    WeatherSvc --> OpenWeather
+    Knowledge --> KnowledgeJSONL
+    Knowledge --> LLM
+    Fashion --> LLM
+
+    Server --> Presentation
+    Presentation -->|view_model| Session
+
+    Session -->|历史 / 收藏操作| FrontAPI
+    FrontAPI -->|/api/history / /api/favorites| Server
+    Server --> UserStore
+    UserStore --> RuntimeStore
+    RuntimeStore --> RuntimeFiles
+
+    Obs --> RuntimeStore
+    Health --> LLM
+    Health --> Knowledge
+    MapSupport --> RuntimeStore
+    DevPages -.配置与诊断.-> MapSupport
+    DevPages -.模型测试与配置.-> LLM
+    DevPages -.日志与 Trace.-> Obs
+
+    classDef core fill:#e8f1ff,stroke:#3b82f6,color:#0f172a;
+    classDef support fill:#ecfeef,stroke:#22c55e,color:#14532d;
+    classDef data fill:#fff7ed,stroke:#f97316,color:#7c2d12;
+    class Coordinator,Workflow,Presentation,Session,Server core;
+    class LLM,Obs,RuntimeStore,UserStore,Health,MapSupport support;
+    class OpenWeather,KnowledgeJSONL,RuntimeFiles,BrowserStorage data;

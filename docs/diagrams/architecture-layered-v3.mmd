@@ -1,0 +1,25 @@
+flowchart TB
+    User["用户查询入口\nQueryWorkspace / QueryPanel"]
+    Session["会话状态层\nWeatherWearSession / AppRouter"]
+    FrontAPI["前端 API 封装\nshared/api.ts"]
+    Server["后端入口\nserver.py"]
+    Coordinator["应用编排\nMultiAgentCoordinator"]
+    Workflow["工作流执行\nworkflow.py"]
+    CityWeather["城市与天气服务\ncity_resolver.py + weather_service.py"]
+    FashionStack["知识与穿搭服务\nfashion_knowledge.py + fashion_agent.py"]
+    Presentation["结果表示层\npresentation.py"]
+    Runtime["运行时支撑\nhealth_check / llm_support / map_support / observability"]
+    Storage["状态持久化\nuser_state_store.py + runtime_storage.py"]
+    Sources["资源层\nOpenWeather / fashion_knowledge JSONL / .runtime"]
+
+    User --> Session --> FrontAPI --> Server --> Coordinator --> Workflow
+    Workflow --> CityWeather
+    Workflow --> FashionStack
+    Coordinator --> Presentation --> Session
+    CityWeather --> Sources
+    FashionStack --> Sources
+    Server -. trace / health .-> Runtime
+    Runtime -. logs / diagnostics .-> Sources
+    Server --> Storage --> Sources
+    Session -. developer tools .-> Runtime
+

@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-import llm_support
+import weatherwear.support.llm_support as llm_support
 
 
 class FakeResponse:
@@ -66,7 +66,7 @@ class LLMSupportTests(unittest.TestCase):
                 "ALT_LLM_MODEL_ID": "qwen-max",
             },
             clear=False,
-        ), patch("llm_support.is_module_available", side_effect=lambda name: name == "langchain_openai"), patch.dict(
+        ), patch("weatherwear.support.llm_support.is_module_available", side_effect=lambda name: name == "langchain_openai"), patch.dict(
             sys.modules,
             {"langchain_openai": fake_module},
         ):

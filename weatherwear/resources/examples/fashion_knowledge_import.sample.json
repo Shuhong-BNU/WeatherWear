@@ -1,0 +1,39 @@
+[
+  {
+    "id": "demo-breezy-commute-upper",
+    "locale": "en-US",
+    "category": "upper_body",
+    "summary": "For a breezy commute, keep one easy removable layer on the upper body.",
+    "body": "If the weather is mild but the commute includes indoor and outdoor switching, a light removable layer helps keep the outfit stable.",
+    "tags": ["work", "commute", "mild", "upper"],
+    "occasion_hints": ["work", "indoor", "outdoor"],
+    "gender_compatibility": ["neutral", "male", "female"],
+    "weather_conditions": {
+      "temperature_min": 16,
+      "temperature_max": 24,
+      "wind_speed_min": 4
+    },
+    "structured_guidance": {
+      "dominant_factors": ["Wind and indoor-outdoor switching matter more than pure warmth."],
+      "occasion_adjustments": ["Keep the outer layer easy to carry after arrival."]
+    }
+  },
+  {
+    "id": "demo-light-rain-shoes",
+    "locale": "en-US",
+    "category": "shoes_accessories",
+    "summary": "In light rain, prioritize shoes that stay dry easily.",
+    "body": "When the day includes light rain and walking, closed shoes with easy-dry uppers are more practical than delicate styling.",
+    "tags": ["walking", "drizzle", "shoes", "accessories"],
+    "occasion_hints": ["walking", "friends", "travel"],
+    "gender_compatibility": ["neutral", "male", "female"],
+    "weather_conditions": {
+      "condition_any": ["rain", "drizzle"],
+      "temperature_min": 10
+    },
+    "structured_guidance": {
+      "shoes": ["Favor closed shoes that do not soak easily."],
+      "occasion_adjustments": ["Keep a compact umbrella nearby."]
+    }
+  }
+]

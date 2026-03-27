@@ -1,0 +1,140 @@
+[
+  {
+    "name": "cold_work_commute_en",
+    "locale": "en-US",
+    "weather": {
+      "temperature": 4,
+      "feels_like": 1,
+      "temp_min": 0,
+      "temp_max": 7,
+      "description": "Clear",
+      "humidity": 40,
+      "wind_speed": 4.0
+    },
+    "query_context": {
+      "query_text": "Beijing outfit advice",
+      "occasion_text": "work commute with office AC",
+      "occasion_tags": ["work", "office", "air_conditioning"],
+      "primary_scene": "work",
+      "gender": "neutral"
+    },
+    "expected_any_hit_ids": ["work-cold-upper", "work-cold-bottoms", "work-cold-shoes"],
+    "expected_retrieval_mode": "rules_only",
+    "expected_vector_leg_status": "skipped"
+  },
+  {
+    "name": "cold_work_commute_zh",
+    "locale": "zh-CN",
+    "weather": {
+      "temperature": 4,
+      "feels_like": 1,
+      "temp_min": 0,
+      "temp_max": 7,
+      "description": "Clear",
+      "humidity": 40,
+      "wind_speed": 4.0
+    },
+    "query_context": {
+      "query_text": "北京通勤穿什么",
+      "occasion_text": "上班通勤，办公室空调偏冷",
+      "occasion_tags": ["work", "office", "air_conditioning"],
+      "primary_scene": "work",
+      "gender": "neutral"
+    },
+    "expected_any_hit_ids": ["work-cold-upper", "work-cold-bottoms", "work-cold-shoes"],
+    "expected_retrieval_mode": "rules_only",
+    "expected_vector_leg_status": "skipped"
+  },
+  {
+    "name": "rainy_weekend_friends_en",
+    "locale": "en-US",
+    "weather": {
+      "temperature": 15,
+      "feels_like": 13,
+      "temp_min": 12,
+      "temp_max": 17,
+      "description": "Rain",
+      "humidity": 85,
+      "wind_speed": 3.5
+    },
+    "query_context": {
+      "query_text": "Shanghai weekend clothes",
+      "occasion_text": "meeting friends and walking outside",
+      "occasion_tags": ["friends", "walking"],
+      "primary_scene": "friends",
+      "gender": "neutral"
+    },
+    "expected_any_hit_ids": ["light-rain-hems", "friends-cool-upper", "walking-support"],
+    "expected_retrieval_mode": "rules_only",
+    "expected_vector_leg_status": "skipped"
+  },
+  {
+    "name": "rainy_weekend_friends_zh",
+    "locale": "zh-CN",
+    "weather": {
+      "temperature": 15,
+      "feels_like": 13,
+      "temp_min": 12,
+      "temp_max": 17,
+      "description": "Rain",
+      "humidity": 85,
+      "wind_speed": 3.5
+    },
+    "query_context": {
+      "query_text": "上海周末下雨见朋友怎么穿",
+      "occasion_text": "周末见朋友，还要在外面走一走",
+      "occasion_tags": ["friends", "walking"],
+      "primary_scene": "friends",
+      "gender": "neutral"
+    },
+    "expected_any_hit_ids": ["light-rain-hems", "friends-cool-upper", "walking-support"],
+    "expected_retrieval_mode": "rules_only",
+    "expected_vector_leg_status": "skipped"
+  },
+  {
+    "name": "hot_sunny_date_en",
+    "locale": "en-US",
+    "weather": {
+      "temperature": 28,
+      "feels_like": 31,
+      "temp_min": 24,
+      "temp_max": 32,
+      "description": "Sunny",
+      "humidity": 62,
+      "wind_speed": 2.2
+    },
+    "query_context": {
+      "query_text": "Guangzhou outfit advice",
+      "occasion_text": "date night with some walking",
+      "occasion_tags": ["date", "walking"],
+      "primary_scene": "date",
+      "gender": "neutral"
+    },
+    "expected_any_hit_ids": ["date-warm-upper", "date-warm-bottoms", "date-warm-shoes"],
+    "expected_retrieval_mode": "rules_only",
+    "expected_vector_leg_status": "skipped"
+  },
+  {
+    "name": "hot_sunny_date_zh",
+    "locale": "zh-CN",
+    "weather": {
+      "temperature": 28,
+      "feels_like": 31,
+      "temp_min": 24,
+      "temp_max": 32,
+      "description": "Sunny",
+      "humidity": 62,
+      "wind_speed": 2.2
+    },
+    "query_context": {
+      "query_text": "广州晴热天气约会穿什么",
+      "occasion_text": "晚上约会，还会走一些路",
+      "occasion_tags": ["date", "walking"],
+      "primary_scene": "date",
+      "gender": "neutral"
+    },
+    "expected_any_hit_ids": ["date-warm-upper", "date-warm-bottoms", "date-warm-shoes"],
+    "expected_retrieval_mode": "rules_only",
+    "expected_vector_leg_status": "skipped"
+  }
+]

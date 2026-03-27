@@ -6,9 +6,9 @@ import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from app_types import LocationCandidate
-from common_utils import stable_id
-from weather import Weather
+from weatherwear.domain.types import LocationCandidate
+from weatherwear.support.common_utils import stable_id
+from weatherwear.services.weather_service import Weather
 
 
 class StubWeather(Weather):
@@ -20,6 +20,14 @@ class StubWeather(Weather):
         if not self.responses:
             return None, "no_stub_response"
         return self.responses.pop(0)
+
+
+class KeyFailureWeather(Weather):
+    def __init__(self):
+        super().__init__(api_key="bad-key")
+
+    def _request_json(self, url, params, *, cache_key, ttl_seconds):  # noqa: D401
+        return None, "HTTP 401: Invalid API key"
 
 
 def make_location(city: str, state: str, country: str, country_code: str, lat: float, lon: float) -> LocationCandidate:
@@ -46,11 +54,41 @@ class WeatherServiceTests(unittest.TestCase):
         self.assertEqual(result.data_mode, "demo")
         self.assertTrue(result.demo_mode)
 
-    def test_demo_mode_unknown_city_returns_error_not_demo(self):
+    def test_demo_mode_unknown_city_returns_demo_weather(self):
         service = Weather(api_key="")
         result = service.get_weather_by_query("unknown-city-for-test")
-        self.assertFalse(result.ok)
-        self.assertEqual(result.data_mode, "error")
+        self.assertTrue(result.ok)
+        self.assertEqual(result.data_mode, "demo")
+
+    def test_invalid_api_key_geocoding_degrades_to_demo_candidate(self):
+        service = KeyFailureWeather()
+        candidates = service.geocode_city("海拉尔")
+        self.assertEqual(len(candidates), 1)
+        self.assertEqual(candidates[0].city, "海拉尔")
+        self.assertEqual(candidates[0].source, "geocoding_fallback")
+
+    def test_invalid_api_key_future_date_returns_demo_forecast(self):
+        service = KeyFailureWeather()
+        location = make_location("Hailar", "Inner Mongolia", "China", "CN", 49.2389, 120.0229)
+        result = service.get_weather_for_candidate_on_date(location, target_date="2026-03-26")
+        self.assertTrue(result.ok)
+        self.assertTrue(result.demo_mode)
+        self.assertTrue(result.is_forecast)
+        self.assertEqual(result.forecast_mode, "forecast_day")
+        self.assertEqual(result.forecast_date, "2026-03-26")
+        self.assertIn("401", result.error)
+
+    def test_demo_weather_changes_with_target_date(self):
+        service = Weather(api_key="")
+        location = make_location("Singapore", "", "Singapore", "SG", 1.3521, 103.8198)
+        day_one = service.get_weather_for_candidate_on_date(location, target_date="2026-03-28")
+        day_two = service.get_weather_for_candidate_on_date(location, target_date="2026-03-29")
+        self.assertTrue(day_one.ok)
+        self.assertTrue(day_two.ok)
+        self.assertNotEqual(
+            (day_one.temperature, day_one.temp_min, day_one.temp_max, day_one.description),
+            (day_two.temperature, day_two.temp_min, day_two.temp_max, day_two.description),
+        )
 
     def test_latlon_failure_can_fallback_to_q_mode(self):
         service = StubWeather(

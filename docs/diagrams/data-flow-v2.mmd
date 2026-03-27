@@ -1,0 +1,7 @@
+flowchart LR
+    Input["用户输入"] --> Req["QueryRequest"]
+    Req --> State["QueryState / QueryPlan"]
+    State --> Domain["地点 / 天气 / 知识 / 穿搭"]
+    Domain --> Result["CoordinatorResult / view_model"]
+    Result --> Persist["history / favorites / logs"]
+

@@ -1,0 +1,146 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color: #0f172a;
+    background:
+      radial-gradient(circle at top left, rgba(96, 165, 250, 0.12), transparent 32%),
+      radial-gradient(circle at top right, rgba(59, 130, 246, 0.08), transparent 28%),
+      #f7fafc;
+    font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+
+  html,
+  body,
+  #root {
+    min-height: 100%;
+  }
+
+  body {
+    @apply text-slate-900 antialiased;
+    margin: 0;
+  }
+
+  * {
+    @apply border-slate-200;
+  }
+}
+
+@layer components {
+  .panel {
+    @apply rounded-[28px] border bg-white shadow-soft;
+    border-color: rgba(226, 232, 240, 0.9);
+  }
+
+  .panel-muted {
+    @apply rounded-2xl border border-slate-200 bg-slate-50;
+  }
+
+  .hero-panel {
+    background:
+      radial-gradient(circle at top right, rgba(255, 255, 255, 0.18), transparent 34%),
+      linear-gradient(135deg, #08142f 0%, #153ea9 55%, #2c65f5 100%);
+    @apply rounded-[32px] text-white shadow-soft;
+  }
+
+  .hero-chip {
+    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-medium;
+    background-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .section-title {
+    @apply text-xl font-semibold tracking-tight text-slate-950;
+  }
+
+  .field-label {
+    @apply text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500;
+  }
+
+  .muted-copy {
+    @apply text-sm leading-7 text-slate-500;
+  }
+
+  .chip {
+    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold;
+  }
+
+  .chip-info {
+    @apply bg-blue-50 text-blue-700;
+  }
+
+  .chip-success {
+    @apply bg-emerald-50 text-emerald-700;
+  }
+
+  .chip-warning {
+    @apply bg-amber-50 text-amber-700;
+  }
+
+  .chip-danger {
+    @apply bg-rose-50 text-rose-700;
+  }
+
+  .primary-button {
+    @apply inline-flex items-center justify-center rounded-2xl bg-brand-500 px-5 py-3 font-semibold text-white transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-white;
+  }
+
+  .secondary-button {
+    @apply inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-3 font-medium text-slate-700 transition hover:border-brand-200 hover:text-brand-700 disabled:cursor-not-allowed disabled:text-slate-400;
+  }
+
+  .ghost-button {
+    @apply inline-flex items-center justify-center rounded-2xl px-4 py-3 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-800;
+  }
+
+  .input {
+    @apply w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-brand-400 focus:ring-4 focus:ring-brand-100;
+  }
+
+  .gender-card {
+    @apply flex min-h-[112px] flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-4 text-slate-700 transition;
+  }
+
+  .gender-card:hover {
+    @apply border-brand-200 bg-brand-50 text-brand-700;
+  }
+
+  .gender-card-active {
+    @apply border-brand-500 bg-brand-500 text-white shadow-soft;
+  }
+
+  .gender-card-active:hover {
+    @apply border-brand-500 bg-brand-500 text-white;
+  }
+
+  .status-track {
+    @apply h-3 w-full overflow-hidden rounded-full bg-slate-200;
+  }
+
+  .status-fill {
+    @apply h-full rounded-full bg-gradient-to-r from-brand-400 to-brand-600 transition-all duration-500;
+  }
+}
+
+.map-pin-wrapper {
+  background: transparent;
+  border: none;
+}
+
+.map-pin-marker {
+  width: 28px;
+  height: 28px;
+  border-radius: 9999px 9999px 9999px 0;
+  transform: rotate(-45deg);
+  background: linear-gradient(135deg, #2563eb, #4f7cff);
+  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.35);
+  position: relative;
+}
+
+.map-pin-marker span {
+  position: absolute;
+  inset: 8px;
+  border-radius: 9999px;
+  background: white;
+}

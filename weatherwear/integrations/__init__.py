@@ -1,0 +1,1 @@
+"""Integration entrypoints for WeatherWear."""

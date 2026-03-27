@@ -1,0 +1,82 @@
+flowchart LR
+    subgraph INPUT["阶段 1：输入采集"]
+        UserInput["用户输入<br/>query_text"]
+        MapInput["地图输入<br/>selected_coords"]
+        ModeInput["交互选项<br/>confirmation_mode / locale / gender / occasion / target_date"]
+    end
+
+    subgraph REQUEST["阶段 2：请求载荷"]
+        QueryRequest["QueryRequest<br/>前后端请求契约"]
+        QueryState["QueryState<br/>工作流运行态"]
+        QueryPlan["QueryPlan<br/>planner 或 fast path 生成"]
+    end
+
+    subgraph DOMAIN["阶段 3：领域状态"]
+        CityResult["CityResolutionResult"]
+        WeatherResult["WeatherResult"]
+        KnowledgeHits["KnowledgeHit[]"]
+        FashionAdvice["FashionAdviceResult"]
+        CoordinatorResult["CoordinatorResult"]
+    end
+
+    subgraph SOURCES["阶段 4：外部 / 本地数据源"]
+        OpenWeather["OpenWeather API"]
+        JSONL["resources/fashion_knowledge/*.jsonl"]
+        LLMConfig["LLM / Embedding 配置"]
+        MapConfig["地图配置"]
+    end
+
+    subgraph RESULT["阶段 5：结果模型"]
+        ViewModel["view_model<br/>结果页 + Clarification + Timeline + Debug Sections"]
+        UIRender["UI 渲染<br/>结果卡片 / 候选确认 / Trace 面板"]
+        DebugViews["开发者视图<br/>Trace / Logs / ModelConfig / MapConfig"]
+    end
+
+    subgraph STORE["阶段 6：持久化 / 观测"]
+        History["history.json"]
+        Favorites["favorites.json"]
+        EventLog["app.events.jsonl"]
+        BrowserStore["sessionStorage / localStorage"]
+    end
+
+    UserInput --> QueryRequest
+    MapInput --> QueryRequest
+    ModeInput --> QueryRequest
+
+    QueryRequest --> QueryState
+    QueryRequest --> QueryPlan
+    QueryPlan --> QueryState
+
+    QueryState --> CityResult
+    QueryState --> WeatherResult
+    QueryState --> KnowledgeHits
+    QueryState --> FashionAdvice
+
+    CityResult --> CoordinatorResult
+    WeatherResult --> CoordinatorResult
+    KnowledgeHits --> CoordinatorResult
+    FashionAdvice --> CoordinatorResult
+
+    CoordinatorResult --> ViewModel
+    ViewModel --> UIRender
+    ViewModel --> DebugViews
+    ViewModel --> BrowserStore
+
+    ViewModel --> History
+    ViewModel --> Favorites
+    QueryState --> EventLog
+    CoordinatorResult --> EventLog
+
+    QueryState -.地点解析 / 反向解析.-> OpenWeather
+    WeatherResult -.实时天气 / 预报.-> OpenWeather
+    KnowledgeHits -.规则 / 向量检索.-> JSONL
+    QueryState -.planner / fashion / embedding.-> LLMConfig
+    ViewModel -.地图展示与配置诊断.-> MapConfig
+
+    classDef input fill:#eff6ff,stroke:#3b82f6,color:#0f172a;
+    classDef runtime fill:#ecfdf5,stroke:#10b981,color:#14532d;
+    classDef store fill:#fff7ed,stroke:#f59e0b,color:#7c2d12;
+
+    class UserInput,MapInput,ModeInput,QueryRequest input;
+    class QueryState,QueryPlan,CityResult,WeatherResult,KnowledgeHits,FashionAdvice,CoordinatorResult,ViewModel,UIRender,DebugViews runtime;
+    class OpenWeather,JSONL,LLMConfig,MapConfig,History,Favorites,EventLog,BrowserStore store;

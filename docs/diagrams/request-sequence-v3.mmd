@@ -1,0 +1,46 @@
+sequenceDiagram
+    autonumber
+    actor User as 用户
+    participant Front as QueryPanel / Session / shared/api.ts
+    participant API as FastAPI /api/query
+    participant Coord as MultiAgentCoordinator / workflow
+    participant CityWeather as CityResolver + WeatherService
+    participant Fashion as FashionKnowledge + FashionAgent
+    participant Present as Presentation / Session UI
+
+    User->>Front: 提交文本地点或地图点位
+    Front->>Front: 组装 QueryRequest
+    Front->>API: POST /api/query
+    API->>API: 生成 request_id + 记录 query.started
+    API->>Coord: process_query(payload)
+    Coord->>Coord: planner 或 fast path
+    Coord->>CityWeather: resolve_city(...)
+    CityWeather-->>Coord: CityResolutionResult
+
+    alt strict / needs_clarification
+        Coord->>Present: 返回 clarification view_model
+        Present-->>Front: 展示候选确认
+    else 地点已确认
+        Coord->>CityWeather: fetch_weather(...)
+        alt OpenWeather 未配置
+            CityWeather-->>Coord: WeatherResult(demo / degraded)
+        else OpenWeather 可用
+            CityWeather-->>Coord: WeatherResult(live)
+        end
+        Coord->>Fashion: retrieve_knowledge + get_fashion_advice
+        alt LLM 不可用
+            Fashion-->>Coord: FashionAdviceResult(规则兜底)
+        else LLM 可用
+            Fashion-->>Coord: KnowledgeHit[] + FashionAdviceResult
+        end
+        Coord->>Present: build_result_view_model
+        Present-->>Front: QueryResponse(view_model)
+        Front->>Front: 更新结果 / 历史 / 收藏 / notice
+    end
+
+    par 后端观测
+        API->>API: 写 trace / logs / app.events.jsonl
+    and 前端本地状态
+        Front->>Front: 写 sessionStorage / localStorage
+    end
+

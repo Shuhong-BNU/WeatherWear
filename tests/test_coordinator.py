@@ -6,8 +6,8 @@ import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from app_types import ExecutionRecord, FashionAdviceResult, QueryPlan, WeatherResult
-from multi_agent_coordinator import MultiAgentCoordinator
+from weatherwear.domain.types import ExecutionRecord, FashionAdviceResult, QueryPlan, WeatherResult
+from weatherwear.application.coordinator import MultiAgentCoordinator
 
 
 class CoordinatorExecutionTests(unittest.TestCase):
@@ -115,6 +115,32 @@ class CoordinatorExecutionTests(unittest.TestCase):
         self.assertTrue(result.execution_trace)
         self.assertEqual(result.execution_trace[0].node_name, "planner")
         self.assertTrue(result.execution_trace[0].provider)
+
+    def test_cancellation_marks_result_and_stops_following_steps(self):
+        coordinator = MultiAgentCoordinator()
+        coordinator._finalize_warnings = lambda result, plan_record: None
+
+        def fake_resolution(result, preferred_candidate_id="", cancel_token=None):
+            result.resolution.resolution_status = "resolved"
+            result.resolution.selected = object()
+            return True
+
+        def fake_weather(result, cancel_token=None):
+            if cancel_token is not None:
+                cancel_token.registry.cancel(cancel_token.request_id)
+            return True
+
+        def fake_fashion(result, cancel_token=None):
+            raise AssertionError("fashion step should not run after cancellation")
+
+        coordinator._run_resolution_step = fake_resolution
+        coordinator._run_weather_step = fake_weather
+        coordinator._run_fashion_step = fake_fashion
+
+        result = coordinator.process_query("beijing")
+        self.assertFalse(result.ok)
+        self.assertEqual(result.error, "query_cancelled")
+        self.assertEqual(result.execution_trace[-1].node_name, "cancel_query")
 
 
 if __name__ == "__main__":

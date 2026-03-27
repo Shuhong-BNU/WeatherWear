@@ -1,0 +1,25 @@
+flowchart TB
+    subgraph FE["前端层（React + TypeScript）"]
+        UI1["主查询工作台 UI"]
+        UI2["结果可视化与调试视图"]
+    end
+    subgraph API["后端接口层（FastAPI）"]
+        Route["API 路由<br/>/api/query /api/history /api/favorites"]
+    end
+    subgraph WF["智能体 / 工作流层"]
+        Planner["Query Planner"]
+        Coord["MultiAgentCoordinator"]
+        Presenter["presentation.py"]
+        City["city_resolver.py"]
+        Weather["weather_service.py"]
+        Knowledge["fashion_knowledge.py"]
+        Fashion["fashion_agent.py"]
+        Support["llm_support / health_check / observability / runtime_storage"]
+    end
+    subgraph EXT["外部服务与持久化层"]
+        OpenWeather["OpenWeather"]
+        Jsonl["知识库 JSONL"]
+        Runtime[".runtime 日志 / 状态"]
+        LLM["LLM / Embedding"]
+    end
+

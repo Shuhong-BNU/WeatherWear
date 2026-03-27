@@ -1,0 +1,74 @@
+sequenceDiagram
+    autonumber
+    actor User as 用户
+    participant Session as QueryPanel / Session
+    participant FrontAPI as shared/api.ts
+    participant API as FastAPI /api/query
+    participant Coord as MultiAgentCoordinator
+    participant Flow as workflow
+    participant City as CityResolver
+    participant Weather as WeatherService
+    participant Knowledge as FashionKnowledge
+    participant Fashion as FashionAgent
+    participant Present as Presentation
+    participant UI as Session / UI
+
+    User->>Session: 提交文本地点或地图点位
+    Session->>Session: 组装 QueryRequest\nquery_text / selected_coords / confirmation_mode / locale
+    Session->>FrontAPI: postQuery(payload)
+    FrontAPI->>API: POST /api/query
+    API->>API: 生成 request_id\n记录 query.started 事件
+    API->>Coord: process_query(payload)
+    Coord->>Flow: run_query_workflow(QueryState)
+
+    alt 复杂查询且 LLM 可用
+        Flow->>Coord: 调用 planner 节点
+        Coord->>Coord: 生成 QueryPlan（LLM planner）
+    else 普通查询或已有选中候选/坐标
+        Flow->>Coord: 走 fast path
+        Coord->>Coord: 生成默认 QueryPlan
+    end
+
+    Flow->>City: resolve_city(...)
+    City-->>Flow: CityResolutionResult
+
+    alt strict 模式或需要澄清候选
+        Flow-->>Coord: 返回 needs_clarification
+        Coord->>Present: build_result_view_model(clarification result)
+        Present-->>API: QueryResponse(view_model)
+        API-->>FrontAPI: 200 OK
+        FrontAPI-->>UI: 返回候选地点确认 view_model
+        UI->>UI: 展示 CandidateConfirmCard / 提示消息
+    else 地点已确认
+        Flow->>Weather: fetch weather by city / coords
+
+        alt OpenWeather 已配置
+            Weather-->>Flow: WeatherResult(live / forecast)
+        else OpenWeather 未配置
+            Weather-->>Flow: WeatherResult(demo / degraded)
+        end
+
+        Flow->>Fashion: get_fashion_advice(weather, locale, query_context)
+        Fashion->>Knowledge: retrieve_knowledge_hits(weather, context, locale)
+        Knowledge-->>Fashion: KnowledgeHit[]
+
+        alt LLM 可用
+            Fashion-->>Flow: FashionAdviceResult(LLM + 规则融合)
+        else LLM 不可用
+            Fashion-->>Flow: FashionAdviceResult(规则兜底)
+        end
+
+        Flow-->>Coord: CoordinatorResult
+        Coord->>Present: build_result_view_model(result)
+        Present-->>API: QueryResponse(view_model)
+        API-->>FrontAPI: 200 OK
+        FrontAPI-->>UI: 返回 view_model
+        UI->>UI: 更新结果区、进度条、notice
+        UI->>UI: 更新历史/收藏状态与最近查询
+    end
+
+    par 后端观测链
+        API->>API: 写 step trace / app.events.jsonl / logs
+    and 前端本地状态链
+        UI->>UI: 写 sessionStorage / localStorage
+    end

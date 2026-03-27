@@ -1,0 +1,21 @@
+flowchart LR
+    Input["输入采集\nquery_text / selected_coords / confirmation_mode / locale"]
+    Request["QueryRequest"]
+    State["QueryState / QueryPlan"]
+    Domain["领域结果\nCityResolutionResult / WeatherResult / KnowledgeHit[] / FashionAdviceResult"]
+    Result["CoordinatorResult -> view_model"]
+    UI["UI 渲染 / 调试面板"]
+    History["history.json"]
+    Favorites["favorites.json"]
+    Events["app.events.jsonl"]
+    Sources["数据源池\nOpenWeather / fashion_knowledge JSONL / LLM config / map config"]
+
+    Input --> Request --> State --> Domain --> Result
+    Sources -. 解析 / 检索 / 配置 .-> State
+    Sources -. 天气 / 知识 / 模型 .-> Domain
+    Result --> UI
+    Result --> History
+    Result --> Favorites
+    State -. 观测 .-> Events
+    Result -. 观测 .-> Events
+

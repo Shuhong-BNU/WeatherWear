@@ -1,0 +1,28 @@
+flowchart LR
+    AppRouter["AppRouter"]
+    QueryPanel["QueryWorkspace / QueryPanel"]
+    Session["WeatherWearSession"]
+    FrontAPI["shared/api.ts"]
+    Server["server.py"]
+    Coordinator["MultiAgentCoordinator"]
+    Workflow["workflow.py"]
+    Presentation["presentation.py"]
+    City["city_resolver.py"]
+    Weather["weather_service.py"]
+    Knowledge["fashion_knowledge.py"]
+    Fashion["fashion_agent.py"]
+    UserStore["user_state_store.py"]
+    RuntimeStore["runtime_storage.py\n.runtime/state + .runtime/logs"]
+    Jsonl["resources/fashion_knowledge/*.jsonl"]
+
+    AppRouter --> QueryPanel --> Session --> FrontAPI --> Server
+    Server --> Coordinator --> Workflow
+    Coordinator --> Presentation --> Session
+    Workflow --> City
+    Workflow --> Weather
+    Workflow --> Fashion
+    Fashion --> Knowledge --> Jsonl
+    Server --> UserStore --> RuntimeStore
+    Server -. trace / logs .-> RuntimeStore
+    AppRouter -. Trace / Logs / ModelConfig / MapConfig .-> Session
+
