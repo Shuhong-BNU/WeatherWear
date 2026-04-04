@@ -2,10 +2,13 @@ from __future__ import annotations
 
 import os
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import Any
 
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from weatherwear.api.schemas import (
     ClientLogEventRequest,
@@ -96,6 +99,7 @@ app.add_middleware(
 )
 
 coordinator = MultiAgentCoordinator()
+FRONTEND_DIST = Path(__file__).resolve().parents[2] / "frontend" / "dist"
 
 
 def _trace_tags(record: Any) -> list[str]:
@@ -507,6 +511,26 @@ def get_log_tail(
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return LogTailResponse.model_validate(data)
+
+
+if FRONTEND_DIST.exists():
+    assets_dir = FRONTEND_DIST / "assets"
+    if assets_dir.exists():
+        app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="frontend-assets")
+
+    @app.get("/", include_in_schema=False)
+    def get_frontend_index() -> FileResponse:
+        return FileResponse(FRONTEND_DIST / "index.html")
+
+
+    @app.get("/{full_path:path}", include_in_schema=False)
+    def get_frontend_app(full_path: str) -> FileResponse:
+        if not full_path or full_path.startswith("api/"):
+            raise HTTPException(status_code=404, detail="Not found")
+        candidate = FRONTEND_DIST / full_path
+        if candidate.is_file():
+            return FileResponse(candidate)
+        return FileResponse(FRONTEND_DIST / "index.html")
 
 
 def main():

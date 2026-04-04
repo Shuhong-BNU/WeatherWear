@@ -6,26 +6,50 @@
 
 ## 中文
 
-WeatherWear 3.0 是一个围绕“地点确认 -> 天气查询 -> 穿搭建议 -> 可观测执行链路”构建的 **单场景 LLM 应用工程项目**。  
-它强调 `workflow + 轻量 RAG + 可观测性`，不是通用 Agent 平台，也不是真正多智能体协作框架。
+WeatherWear 3.0 是一个围绕“地点确认 -> 天气查询 -> 穿搭建议 -> 可观测执行链路”构建的单场景 LLM 应用工程。  
+它的重点是 `workflow + 轻量 RAG + 可观测性`，不是通用 Agent 平台，也不是真正多智能体协作框架。
 
-### 简历统一命名
+### 项目定位
 
-**`WeatherWear｜可观测工作流式天气穿搭 LLM 应用`**
+- 面向用户：输入城市或在地图上选点，获取天气结果和穿搭建议
+- 面向开发：查看执行 trace、模型配置、地图配置、系统状态和日志
+- AI 能力边界：`workflow + lightweight RAG + code-orchestrated tool calls`
+- 非目标：开放式自治 Agent、长期记忆系统、真正多模态大模型、正式生产级部署闭环
+
+### 架构分层
+
+- 前端交互层 `Frontend Interaction Layer`
+- API 接入层 `API Access Layer`
+- Workflow / Coordinator 编排层 `Workflow / Coordinator Orchestration Layer`
+- Domain Services 能力层 `Domain Services Layer`
+- Retrieval / Knowledge 层 `Retrieval / Knowledge Layer`
+- Runtime / Observability / Storage 层 `Runtime / Observability / Storage Layer`
+
+### 核心功能
+
+- 城市解析与候选确认
+- OpenWeather 天气查询
+- 基于天气和场景的穿搭建议生成
+- 本地 JSONL 穿搭知识库的轻量 RAG
+- 开发者页面：
+  - Model Config
+  - Map Config
+  - System Status
+  - Logs
+  - Trace / Timeline / Debug
+- 中英文切换
+- 历史记录与收藏地点
+- 基于 Cloudflare Quick Tunnel 的公网临时 demo 分享
 
 ### Quick Start
 
-**环境要求**
+环境要求：
 
 - Python `3.11+`
 - Node.js `18+`
 - npm `9+`
 
-**一键启动步骤**
-
-1. 克隆仓库
-2. 安装依赖
-3. 运行统一启动命令
+推荐启动方式：
 
 ```powershell
 py -3 -m venv .venv
@@ -36,111 +60,104 @@ cd ..
 .\.venv\Scripts\python.exe scripts/dev_up.py
 ```
 
-如果你的系统命令是 `python`，也可以使用：
-
-```bash
-python scripts/dev_up.py
-```
-
-**常见运行模式说明**
-
-- 未配置 `OPENWEATHER_API_KEY`：系统仍可启动，但天气会进入 `demo / degraded` 路径
-- 未完整配置 LLM：系统仍可启动，但 planner、穿搭生成或 embedding 可能走兜底逻辑
-- 开发者 PIN 会自动写入 `.env` 中的 `WEATHERWEAR_DEV_PIN`
-
-**停止命令**
+停止命令：
 
 ```powershell
 .\.venv\Scripts\python.exe scripts/dev_down.py
 ```
 
-**发布前自检**
+发布前自检：
 
 ```powershell
 .\.venv\Scripts\python.exe scripts/validate_project.py
 ```
 
-### 推荐图谱
+### 公网临时分享 Demo
 
-#### 技术架构图（V3）
+当前代码支持“本机继续使用 + 公网临时分享”：
 
-![技术架构图（V3）](docs/assets/diagrams/architecture-layered-v3.svg)
+```powershell
+.\.venv\Scripts\python.exe scripts/share_demo.py
+```
 
-#### 请求时序图（V3）
+关闭分享：
 
-![请求时序图（V3）](docs/assets/diagrams/request-sequence-v3.svg)
+```powershell
+.\.venv\Scripts\python.exe scripts/share_demo_down.py
+```
 
-#### 数据流转过程图（V3）
+说明：
 
-![数据流转过程图（V3）](docs/assets/diagrams/data-flow-v3.svg)
+- 该能力依赖 `cloudflared`
+- 使用的是 Cloudflare Quick Tunnel
+- 更适合 testing / development / quick demo
+- 不等于正式生产托管
 
-更多图示与旧版图入口见：`docs/architecture-diagrams.md`
+### 当前代码现状提醒
 
-### 技术栈速览
+- `frontend/dist` 存在时，FastAPI 可直接托管前端页面和 `/assets`
+- 未配置 `OPENWEATHER_API_KEY` 时，天气会走 `demo / degraded`
+- 未完整配置 LLM 时，planner / 穿搭生成 / embedding 会走 fallback
+- 当前历史和收藏仍保存在本地 JSON 文件中
 
-- 前端：`React 18`、`TypeScript`、`Vite`、`React Router DOM`、`@tanstack/react-query`、`i18next`、`Leaflet / react-leaflet`、`Tailwind CSS`
-- 后端：`Python`、`FastAPI`、`Pydantic v2`、`Uvicorn`、`requests`、`python-dotenv`
-- AI / RAG：`LangGraph`、`LangChain`、`langchain-openai`、`ChromaDB`、本地 `JSONL` 知识库
-- 外部与工程化：`OpenWeather API`、`OpenAI-compatible LLM / Embedding Provider`、`OpenStreetMap`、`Baidu Map JS SDK`（可选）、`FastMCP`（可选）、`PowerShell` 脚本、`.runtime`
+### 文档入口
 
-完整技术栈总览表见：`README.zh-CN.md` / `README.en-US.md`
-
-### 仓库结构说明
-
-| 路径 | 说明 |
-|---|---|
-| `weatherwear/` | 后端主应用，包含 API、workflow、服务、support、resources |
-| `frontend/` | React 前端，包含查询页、地图交互、结果页、开发者页面 |
-| `docs/` | 架构图、图示文档、评审文档与项目说明 |
-| `scripts/` | 图生成、校验、启动辅助等脚本 |
-| `tests/` | Python 测试用例 |
-
-| 脚本 | 说明 |
-|---|---|
-| `scripts/dev_up.py` | 推荐的跨平台统一启动入口 |
-| `scripts/dev_down.py` | 停止 `dev_up.py` 启动的前后端进程 |
-| `scripts/validate_project.py` | 发布前自检入口 |
-| `run_all.ps1` | Windows 单窗口启动前后端 |
-| `run_all_dev.ps1` | Windows 双窗口开发模式 |
-
-### 文档索引
-
-- 中文完整版：`README.zh-CN.md`
-- 英文完整版：`README.en-US.md`
-- 图示导航：`docs/architecture-diagrams.md`
-- 架构概览：`docs/architecture-overview.md`
-- 图谱说明：`docs/weatherwear-architecture/README.md`
-- 现有图成品评审：`docs/weatherwear-architecture/diagram-review.md`
-
-### 放到 GitHub 后还能继续让 Codex 调整吗？
-
-可以。最稳的方式是继续在**本地工作区**里让 Codex 修改，再把改动推回 GitHub。  
-如果你换了机器或目录，也只需要重新克隆仓库到新的本地工作区，Codex 仍然可以继续接手。
+- 中文完整版：[`README.zh-CN.md`](README.zh-CN.md)
+- 英文完整版：[`README.en-US.md`](README.en-US.md)
+- 图示总览：[`docs/architecture-diagrams.md`](docs/architecture-diagrams.md)
+- 架构概览：[`docs/architecture-overview.md`](docs/architecture-overview.md)
+- 公网分享说明：[`docs/share-demo.md`](docs/share-demo.md)
+- 面试手册：[`WeatherWear_面试复习手册-2.0.md`](WeatherWear_%E9%9D%A2%E8%AF%95%E5%A4%8D%E4%B9%A0%E6%89%8B%E5%86%8C-2.0.md)
+- PRD：[`docs/prd-weatherwear-2.0.md`](docs/prd-weatherwear-2.0.md)
 
 ---
 
 ## English
 
-WeatherWear 3.0 is a **single-scenario LLM application engineering project** built around **location confirmation -> weather lookup -> outfit advice -> observable execution flow**.  
-It emphasizes `workflow + lightweight RAG + observability`; it is not a generic agent platform and not a true multi-agent collaboration framework.
+WeatherWear 3.0 is a single-scenario LLM application project built around **location confirmation -> weather lookup -> outfit advice -> observable execution flow**.  
+Its real focus is `workflow + lightweight RAG + observability`, not a generic agent platform or a true multi-agent collaboration framework.
 
-### Resume-ready Project Name
+### Project Positioning
 
-**`WeatherWear | Observable Workflow-based Weather & Outfit LLM Application`**
+- User-facing: enter a city or pick a point on the map to get weather results and outfit advice
+- Developer-facing: inspect execution traces, model settings, map settings, system status, and logs
+- AI scope: `workflow + lightweight RAG + code-orchestrated tool calls`
+- Explicit non-goals: open-ended autonomous agents, standalone memory, true multimodal LLMs, production-grade deployment completion
+
+### Architecture Layers
+
+- Frontend Interaction Layer
+- API Access Layer
+- Workflow / Coordinator Orchestration Layer
+- Domain Services Layer
+- Retrieval / Knowledge Layer
+- Runtime / Observability / Storage Layer
+
+### Core Features
+
+- City resolution and candidate confirmation
+- OpenWeather-based weather lookup
+- Outfit advice generation based on weather and occasion context
+- Local JSONL outfit knowledge retrieval
+- Developer tools pages for:
+  - Model Config
+  - Map Config
+  - System Status
+  - Logs
+  - Trace / Timeline / Debug
+- Chinese / English UI switching
+- Query history and favorite places
+- Temporary public demo sharing via Cloudflare Quick Tunnel
 
 ### Quick Start
 
-**Requirements**
+Requirements:
 
 - Python `3.11+`
 - Node.js `18+`
 - npm `9+`
 
-**Three-step local startup**
-
-1. Clone the repository
-2. Install dependencies
-3. Run the unified launcher
+Recommended startup:
 
 ```powershell
 py -3 -m venv .venv
@@ -151,83 +168,52 @@ cd ..
 .\.venv\Scripts\python.exe scripts/dev_up.py
 ```
 
-If your environment uses `python`, this also works:
-
-```bash
-python scripts/dev_up.py
-```
-
-**Common runtime modes**
-
-- Without `OPENWEATHER_API_KEY`, the app still starts, but weather falls back to `demo / degraded`
-- Without full LLM configuration, planner / outfit generation / embeddings may use fallback paths
-- The developer PIN is auto-written into `.env` as `WEATHERWEAR_DEV_PIN`
-
-**Stop command**
+Stop:
 
 ```powershell
 .\.venv\Scripts\python.exe scripts/dev_down.py
 ```
 
-**Pre-push validation**
+Pre-push validation:
 
 ```powershell
 .\.venv\Scripts\python.exe scripts/validate_project.py
 ```
 
-### Recommended Diagrams
+### Temporary Public Demo Sharing
 
-#### Technical Architecture Diagram (V3)
+This codebase supports a “keep using locally + share publicly” demo flow:
 
-![Technical Architecture Diagram (V3)](docs/assets/diagrams/architecture-layered-v3.svg)
+```powershell
+.\.venv\Scripts\python.exe scripts/share_demo.py
+```
 
-#### Request Sequence Diagram (V3)
+Stop sharing:
 
-![Request Sequence Diagram (V3)](docs/assets/diagrams/request-sequence-v3.svg)
+```powershell
+.\.venv\Scripts\python.exe scripts/share_demo_down.py
+```
 
-#### Data Flow Diagram (V3)
+Notes:
 
-![Data Flow Diagram (V3)](docs/assets/diagrams/data-flow-v3.svg)
+- depends on `cloudflared`
+- uses Cloudflare Quick Tunnel
+- suitable for testing / development / quick demos
+- not a production hosting solution
 
-See `docs/architecture-diagrams.md` for the full diagram guide and retained legacy versions.
+### Current Code Reality
 
-### Tech Stack Snapshot
+- when `frontend/dist` exists, FastAPI can directly serve the frontend page and `/assets`
+- without `OPENWEATHER_API_KEY`, weather falls back to `demo / degraded`
+- without a full LLM config, planner / outfit generation / embedding may use fallback paths
+- history and favorites are still persisted in local JSON files
 
-- Frontend: `React 18`, `TypeScript`, `Vite`, `React Router DOM`, `@tanstack/react-query`, `i18next`, `Leaflet / react-leaflet`, `Tailwind CSS`
-- Backend: `Python`, `FastAPI`, `Pydantic v2`, `Uvicorn`, `requests`, `python-dotenv`
-- AI / RAG: `LangGraph`, `LangChain`, `langchain-openai`, `ChromaDB`, local `JSONL` knowledge base
-- External & engineering: `OpenWeather API`, `OpenAI-compatible LLM / Embedding Provider`, `OpenStreetMap`, optional `Baidu Map JS SDK`, optional `FastMCP`, `PowerShell` scripts, `.runtime`
+### Docs
 
-See `README.zh-CN.md` / `README.en-US.md` for the full stack overview.
-
-### Repository Map
-
-| Path | Purpose |
-|---|---|
-| `weatherwear/` | Backend app: API, workflow, services, support, and resources |
-| `frontend/` | React frontend: query UI, map interaction, results, developer pages |
-| `docs/` | Architecture docs, diagrams, and review materials |
-| `scripts/` | Diagram generation, validation, and launcher utilities |
-| `tests/` | Python test suite |
-
-| Script | Purpose |
-|---|---|
-| `scripts/dev_up.py` | Recommended cross-platform unified launcher |
-| `scripts/dev_down.py` | Stops the processes started by `dev_up.py` |
-| `scripts/validate_project.py` | Pre-push validation entry |
-| `run_all.ps1` | Windows single-window startup |
-| `run_all_dev.ps1` | Windows two-window development mode |
-
-### Docs Index
-
-- Full Chinese README: `README.zh-CN.md`
-- Full English README: `README.en-US.md`
-- Diagram guide: `docs/architecture-diagrams.md`
-- Architecture overview: `docs/architecture-overview.md`
-- Diagram walkthrough: `docs/weatherwear-architecture/README.md`
-- Existing-diagram review: `docs/weatherwear-architecture/diagram-review.md`
-
-### Can Codex keep helping after this repo is on GitHub?
-
-Yes. The most reliable workflow is to keep using Codex on your **local workspace**, then push changes back to GitHub.  
-If you move to another machine or folder, just clone the repo again into a new local workspace and Codex can continue from there.
+- Full Chinese README: [`README.zh-CN.md`](README.zh-CN.md)
+- Full English README: [`README.en-US.md`](README.en-US.md)
+- Diagram guide: [`docs/architecture-diagrams.md`](docs/architecture-diagrams.md)
+- Architecture overview: [`docs/architecture-overview.md`](docs/architecture-overview.md)
+- Demo sharing guide: [`docs/share-demo.md`](docs/share-demo.md)
+- Interview handbook: [`WeatherWear_面试复习手册-2.0.md`](WeatherWear_%E9%9D%A2%E8%AF%95%E5%A4%8D%E4%B9%A0%E6%89%8B%E5%86%8C-2.0.md)
+- PRD: [`docs/prd-weatherwear-2.0.md`](docs/prd-weatherwear-2.0.md)

@@ -26,6 +26,20 @@ PORTS_FILE = RUNTIME_ROOT / "ports.json"
 APP_EVENTS = LOG_ROOT / "app.events.jsonl"
 
 
+def resolve_esbuild_binary() -> str:
+    if os.name != "nt":
+        return ""
+    candidates = [
+        FRONTEND_ROOT / "node_modules" / "@esbuild" / "win32-x64" / "esbuild.exe",
+        FRONTEND_ROOT / "node_modules" / "@esbuild" / "win32-ia32" / "esbuild.exe",
+        FRONTEND_ROOT / "node_modules" / "@esbuild" / "win32-arm64" / "esbuild.exe",
+    ]
+    for candidate in candidates:
+        if candidate.exists():
+            return str(candidate)
+    return ""
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Start WeatherWear locally with a cross-platform launcher.")
     parser.add_argument("--api-port", type=int, default=8000, help="Preferred API port. Default: 8000")
@@ -144,6 +158,8 @@ def process_alive(pid: int) -> bool:
         return True
     except PermissionError:
         return True
+    except SystemError:
+        return False
     except OSError:
         return False
 
@@ -292,6 +308,9 @@ def main() -> int:
     web_env["WEATHERWEAR_API_URL"] = f"http://127.0.0.1:{api_port}"
     web_env["WEATHERWEAR_OPEN_BROWSER"] = "1" if args.open_browser else "0"
     web_env["npm_config_cache"] = str(FRONTEND_ROOT / ".npm-cache")
+    esbuild_binary = resolve_esbuild_binary()
+    if esbuild_binary:
+        web_env["ESBUILD_BINARY_PATH"] = esbuild_binary
 
     api_process = start_process(
         command=[sys.executable, "-m", "weatherwear.api.server"],

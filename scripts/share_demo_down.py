@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import signal
@@ -12,12 +13,16 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 RUNTIME_ROOT = ROOT / ".runtime"
 LOG_ROOT = RUNTIME_ROOT / "logs"
-API_PID_FILE = RUNTIME_ROOT / "api.pid"
-WEB_PID_FILE = RUNTIME_ROOT / "web.pid"
 TUNNEL_PID_FILE = RUNTIME_ROOT / "tunnel.pid"
-PORTS_FILE = RUNTIME_ROOT / "ports.json"
 SHARE_INFO_FILE = RUNTIME_ROOT / "share-demo.json"
 APP_EVENTS = LOG_ROOT / "app.events.jsonl"
+DEV_DOWN_SCRIPT = ROOT / "scripts" / "dev_down.py"
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Stop the Cloudflare demo share tunnel for WeatherWear.")
+    parser.add_argument("--stop-app", action="store_true", help="Also stop the local WeatherWear app after closing the tunnel.")
+    return parser.parse_args()
 
 
 def read_pid(path: Path) -> int | None:
@@ -54,7 +59,6 @@ def kill_process_tree(pid: int) -> None:
         return
     try:
         os.killpg(pid, signal.SIGTERM)
-        time.sleep(0.5)
     except ProcessLookupError:
         return
 
@@ -62,11 +66,11 @@ def kill_process_tree(pid: int) -> None:
 def stop_managed_process(pid_file: Path, *, name: str) -> None:
     pid = read_pid(pid_file)
     if pid is None:
-        print(f"- {name}: 未发现 PID 文件")
+        print(f"- {name}: 未发现运行中的进程")
         return
     if process_alive(pid):
         kill_process_tree(pid)
-        print(f"- {name}: 已停止进程树 ({pid})")
+        print(f"- {name}: 已停止 ({pid})")
     else:
         print(f"- {name}: 进程已不存在 ({pid})")
     pid_file.unlink(missing_ok=True)
@@ -76,9 +80,9 @@ def append_runtime_event() -> None:
     LOG_ROOT.mkdir(parents=True, exist_ok=True)
     payload = {
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
-        "type": "launcher.stopped",
+        "type": "launcher.share_stopped",
         "level": "info",
-        "message": "WeatherWear stopped by Python launcher.",
+        "message": "WeatherWear public share tunnel stopped.",
         "payload": {},
     }
     with APP_EVENTS.open("a", encoding="utf-8") as handle:
@@ -86,16 +90,17 @@ def append_runtime_event() -> None:
 
 
 def main() -> int:
-    print("正在停止 WeatherWear ...")
-    stop_managed_process(TUNNEL_PID_FILE, name="tunnel")
-    stop_managed_process(API_PID_FILE, name="api")
-    stop_managed_process(WEB_PID_FILE, name="web")
-    PORTS_FILE.unlink(missing_ok=True)
+    args = parse_args()
+    print("正在停止 WeatherWear 公网分享 ...")
+    stop_managed_process(TUNNEL_PID_FILE, name="cloudflared tunnel")
     SHARE_INFO_FILE.unlink(missing_ok=True)
     append_runtime_event()
-    print(f"- 端口清单已移除: {PORTS_FILE}")
     print(f"- 分享信息已移除: {SHARE_INFO_FILE}")
-    print("WeatherWear 已停止。")
+    if args.stop_app:
+        print("- 同时停止本机 WeatherWear ...")
+        completed = subprocess.run([sys.executable, str(DEV_DOWN_SCRIPT)], cwd=str(ROOT))
+        return int(completed.returncode)
+    print("公网分享已关闭，本机 WeatherWear 仍可继续使用。")
     return 0
 
 
